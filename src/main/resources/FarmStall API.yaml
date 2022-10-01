@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: FamStall
+  description: FamStall
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: Reviews
+    description: Reviews of your favorite worst farm stalls
+
+  - name: Users
+    description: Users and authentication
+
+paths:
+  /reviews:
+    get:
+      tags:
+        - Reviews
+      description: Get a list of reviews
+      parameters:
+        - name: maxRating
+          description: |
+            Filter the reviews
+            by the maximum rating
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: A list of reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    uuid:
+                      type: string
+                      pattern: '^[0-9a-fA-F\-]{36}$'
+                    message:
+                      type: string
+                      example: An awesome time for the whole family.
+                    rating:
+                      type: number
+                      minimum: 1
+                      maximum: 5
+                      example: 3b5b1707-b82c-4b1d-9078-157053902525
+                    userId:
+                      type: string
+                      pattern: '^[0-9a-fA-F\-]{36}$'
+                      nullable: true
+                      example: 3b5b1707-b82c-4b1d-9078-157053902525
+    post:
+      tags:
+        - Reviews
+      security:
+        - { }
+        - MyUserToken: [ ]
+      description: Create a new Review
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              example:
+                message: A lovely experience
+                rating: 4
+              properties:
+                message:
+                  type: string
+                  example: An awesome time for the whole family.
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  example: 5
+                userId:
+                  type: string
+                  pattern: ^[0-9a-fA-F\-]{36}$
+                  nullable: true
+                  example: null
+
+      responses:
+        '201':
+          description: Successfully created a new Review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: An awesome time for the whole family.
+                  rating:
+                    type: number
+                    minimum: 1
+                    maximum: 5
+                    example: 5
+                  userId:
+                    type: string
+                    nullable: true
+                    pattern: '^[ a-zA-Z-.0-9 ]{ 36 }&'
+                    format: f7f680a8-d111-421f-b6b3-493ebf905078
+                  uuid:
+                    type: string
+                    format: uuid
+                    pattern: '^[ a-zA-Z-.0-9 ]{ 36 }&'
+                    example: f7f680a8-d111-421f-b6b3-493ebf905078
+
+  /reviews/{reviewId}:
+    get:
+      tags:
+        - Reviews
+      description: Get a single review
+      parameters:
+        - name: reviewId
+          in: path
+          required: true
+          schema:
+            type: integer
+            minLength: 36
+            maxLength: 36
+            pattern: '[ a-zA-Z0-9- ]+'
+            example: 3b5b1707-b82c-4b1d-9078-157053902525
+      responses:
+        200:
+          description: A single review
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: f7f680a8-d111-421f-b6b3-493ebf905078
+                  rating:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    example: 5
+                  userId:
+                    minLength: 36
+                    maxLength: 36
+                    pattern: ^[a-zA-Z0-9-]+$
+                    nullable: true
+                    example: f7f680a8-d111-421f-b6b3-493ebf905078
+                  uuid:
+                    minLength: 36
+                    maxLength: 36
+                    pattern: ^[a-zA-Z0-9-]+$
+                    example: f7f680a8-d111-421f-b6b3-493ebf905078
+
+  /users:
+    post:
+      tags:
+        - Users
+      description: Create a new user
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+                  example: ponelat
+                password:
+                  type: string
+                  description: The password of the user
+                  format: password
+                fullName:
+                  type: string
+                  description: The full name of the user
+                  example: Josh Ponelat
+      responses:
+        201:
+          description: Successfully created a new user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: The username of the user
+                    example: ponelat
+                  uuid:
+                    type: string
+                    format: uuid
+                    description: The ID of the user, as a UUID v4
+                    example: f7f680a8-d111-421f-b6b3-493ebf905078
+
+  /tokens:
+    post:
+      tags:
+        - Users
+      description: Create a new token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+                  example: ponelat
+                password:
+                  type: string
+                  description: The password of the user
+                  format: password
+      responses:
+        201:
+          description: Create a new token for gaining access to resources.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+components:
+  securitySchemes:
+    MyUserToken:
+      type: apiKey
+      in: header
+      name: Authorization
